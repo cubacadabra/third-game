@@ -10,6 +10,7 @@ one package:
 - interaction state reads
 - all retained UI mutations and UI event handling
 - effect state, one-shot effects, and package audio
+- a package-owned image rendered as a framed 3D billboard
 - both bundled SDK helpers
 
 It is intentionally less of a content showcase than first-game and second-game.

@@ -12,6 +12,11 @@
         "path": "assets/audio/probe-ping.wav",
         "volume": 0.62
       }
+    },
+    "images": {
+      "billboard": {
+        "path": "assets/images/billboard.jpg"
+      }
     }
   },
   "effects": {
@@ -105,6 +110,14 @@
       ],
       "signs": [
         { "text": "TRY EVERY BUTTON", "position": [0, 2.5, -21], "maxWidth": 7, "color": "paper" }
+      ],
+      "billboards": [
+        {
+          "image": "billboard",
+          "position": [0, 4.15, -31],
+          "width": 7.2,
+          "height": 4.05
+        }
       ],
       "interactions": [
         {
