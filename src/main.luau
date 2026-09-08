@@ -31,7 +31,17 @@ local function validate_state(value)
 end
 
 local function reduce_state(state, intent)
-    if intent.type ~= "visit" or type(intent.sensor) ~= "string" then
+    if intent.type ~= "visit"
+        or type(intent.sensor) ~= "string"
+        or type(intent.expectedVisits) ~= "number"
+        or intent.expectedVisits ~= math.floor(intent.expectedVisits)
+    then
+        return nil
+    end
+    -- A queued intent is complete once an authoritative snapshot advances the
+    -- counter from the value observed when this visit was dispatched. This is
+    -- required because the shared-state helper retries compare-and-set calls.
+    if state.visits ~= intent.expectedVisits then
         return nil
     end
     return {
@@ -48,14 +58,16 @@ local function set_status(api, text)
     api.ui:set_value("probe-slider", slider_value)
 end
 
-local function on_state_change(api, state)
+local function on_state_change(api, state, previous)
     visits = state.visits
     last_sensor = state.lastSensor
     api.effects:set_state("probe-left", last_sensor == "probe-left" and "visited" or "default")
     api.effects:set_state("probe-right", last_sensor == "probe-right" and "visited" or "default")
     api.effects:set_state("probe-finish", last_sensor == "probe-finish" and "visited" or "default")
-    api.effects:play("probe-pulse", { position = { 0, 0, 0 } })
-    api.audio:play("probe-ping")
+    if previous ~= nil and state.visits > previous.visits then
+        api.effects:play("probe-pulse", { position = { 0, 0, 0 } })
+        api.audio:play("probe-ping")
+    end
     set_status(api, "ACCEPTED  " .. last_sensor)
 end
 
@@ -169,7 +181,11 @@ function Game.on_interaction(api, event)
     end
     api.network:publish("probe-events", { sensor = event.id, players = event.players })
     api.network:set_state("probe-last-event", { sensor = event.id })
-    state_store:dispatch(api, { type = "visit", sensor = event.id })
+    state_store:dispatch(api, {
+        type = "visit",
+        sensor = event.id,
+        expectedVisits = visits,
+    })
 end
 
 function Game.on_network_message(api, event)
