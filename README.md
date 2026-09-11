@@ -26,3 +26,10 @@ PYTHONPATH=../tools/src python3 -m cubacadabra build-game . \
 
 The authoritative reference is
 [Cubacadabra Game Developer Guide — Developer Preview 0.3](../tools/docs/cubacadabra-game-developer-guide-preview-0.3.md).
+
+### Licensing
+
+Copyright (C) 2026 Andrew Arrow
+
+Licensed under the GNU General Public License v3.0 or later.
+See [LICENSE](LICENSE).
