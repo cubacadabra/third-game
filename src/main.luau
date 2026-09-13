@@ -1,6 +1,6 @@
 -- Capability Probe is intentionally a small, complete preview SDK example.
--- @include "@cubacadabra/shared-state-v1.luau"
--- @include "@cubacadabra/disclosure-v1.luau"
+local CubaSharedState = require("@cubacadabra/shared-state")
+local CubaDisclosure = require("@cubacadabra/disclosure")
 
 local Game = {}
 
