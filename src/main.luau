@@ -9,9 +9,11 @@ local objective
 local visits = 0
 local last_sensor = "none"
 local slider_value = 0.5
+local operation_sequence = 0
+local operation_prefix = tostring({})
 
 local function initial_state()
-    return { version = 1, visits = 0, lastSensor = "none" }
+    return { version = 1, visits = 0, lastSensor = "none", operations = {} }
 end
 
 local function validate_state(value)
@@ -20,35 +22,49 @@ local function validate_state(value)
         or type(value.visits) ~= "number"
         or value.visits < 0
         or type(value.lastSensor) ~= "string"
+        or type(value.operations) ~= "table"
     then
         return nil
+    end
+    local operations = {}
+    for operation_id, accepted in pairs(value.operations) do
+        if type(operation_id) == "string" and accepted == true then
+            operations[operation_id] = true
+        end
     end
     return {
         version = 1,
         visits = math.floor(value.visits),
         lastSensor = string.sub(value.lastSensor, 1, 32),
+        operations = operations,
     }
 end
 
 local function reduce_state(state, intent)
     if intent.type ~= "visit"
         or type(intent.sensor) ~= "string"
-        or type(intent.expectedVisits) ~= "number"
-        or intent.expectedVisits ~= math.floor(intent.expectedVisits)
+        or type(intent.operationId) ~= "string"
     then
         return nil
     end
-    -- A queued intent is complete once an authoritative snapshot advances the
-    -- counter from the value observed when this visit was dispatched. This is
-    -- required because the shared-state helper retries compare-and-set calls.
-    if state.visits ~= intent.expectedVisits then
+    if state.operations[intent.operationId] == true then
         return nil
     end
+    local operations = {}
+    for id, accepted in pairs(state.operations) do
+        operations[id] = accepted
+    end
+    operations[intent.operationId] = true
     return {
         version = 1,
         visits = state.visits + 1,
         lastSensor = intent.sensor,
+        operations = operations,
     }
+end
+
+local function operation_status(state, intent)
+    return state.operations[intent.operationId] == true and "accepted" or "pending"
 end
 
 local function set_status(api, text)
@@ -76,6 +92,8 @@ state_store = CubaSharedState.create({
     initial = initial_state,
     validate = validate_state,
     reduce = reduce_state,
+    mode = "distinct",
+    operationStatus = operation_status,
     onChange = on_state_change,
 })
 
@@ -181,10 +199,11 @@ function Game.on_interaction(api, event)
     end
     api.network:publish("probe-events", { sensor = event.id, players = event.players })
     api.network:set_state("probe-last-event", { sensor = event.id })
+    operation_sequence = operation_sequence + 1
     state_store:dispatch(api, {
         type = "visit",
         sensor = event.id,
-        expectedVisits = visits,
+        operationId = operation_prefix .. ":" .. tostring(operation_sequence),
     })
 end
 
