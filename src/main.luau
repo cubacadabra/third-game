@@ -10,6 +10,9 @@ local visits = 0
 local last_sensor = "none"
 local slider_value = 0.5
 local operation_sequence = 0
+-- This VM-local prefix is sufficient for the single-client capability probe.
+-- Production games must use a host/session identity that is unique across
+-- every client sharing the retained channel.
 local operation_prefix = tostring({})
 
 local function initial_state()
