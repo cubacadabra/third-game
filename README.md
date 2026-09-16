@@ -25,7 +25,7 @@ PYTHONPATH=../tools/src python3 -m cubacadabra build-game . \
 ```
 
 The authoritative reference is
-[Cubacadabra Game Developer Guide — Developer Preview 0.3](../tools/docs/cubacadabra-game-developer-guide-preview-0.3.md).
+[Cubacadabra creator guide](https://github.com/cubacadabra/docs/blob/main/contracts/creator-guide.md).
 
 ### Licensing
 
